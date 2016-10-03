@@ -12,8 +12,8 @@
 
 #define LEDPIN 13  // LEDPIN is a constant
 
-#define CHANNEL_CODEC_TX_BUFFER_SIZE 64
-#define CHANNEL_CODEC_RX_BUFFER_SIZE 64
+#define CHANNEL_CODEC_TX_BUFFER_SIZE 32
+#define CHANNEL_CODEC_RX_BUFFER_SIZE 32
 
 channel_codec_instance_t cc_instances[channel_codec_comport_COUNT];
 
@@ -28,7 +28,11 @@ void ChannelCodec_errorHandler(channel_codec_instance_t *instance,  channelCodec
 
 
 void xSerialPutChar(uint8_t data){
+	static uint16_t counter = 0;
+	//data = 0xFF;
+//	data = counter;
 	Serial.write(data);
+	counter++;
 }
 
 void setup() {
@@ -42,10 +46,15 @@ void setup() {
 		  cc_txBuffers[channel_codec_comport_transmission],CHANNEL_CODEC_TX_BUFFER_SIZE);
 
 
+#if 1
   while (!Serial) {
 	; // wait for serial port to connect. Needed for native USB port only
   }
+#endif
+
+
   pinMode(LEDPIN, OUTPUT); // LED init
+  digitalWrite(LEDPIN, 1); // write inversed state back
 }
 
 void toggleLED() {
@@ -55,24 +64,19 @@ void toggleLED() {
 }
 
 void loop() {
-	static int i=0;
-
+	int i=0;
 	uint16_t inByte;
-
-
-
-
-	if (i>1000){
+	#if 1
 		while (Serial.available() > 0) {
 			// read the incoming byte:
 			inByte = Serial.read();
 
 			channel_push_byte_to_RPC(&cc_instances[channel_codec_comport_transmission],inByte);
 		}
+#endif
 
-		delay(5);
-		i = 0;
-	}
-	i++;
+	delay(1000);
+	toggleLED();
+
 	qtUpdateMCUADCValues(18,1,1,1);
 }
