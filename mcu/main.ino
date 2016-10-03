@@ -57,18 +57,20 @@ void toggleLED() {
 void loop() {
 	static int i=0;
 
-	uint8_t inByte;
-	while (Serial.available() > 0) {
-		// read the incoming byte:
-		inByte = Serial.read();
-
-		channel_push_byte_to_RPC(&cc_instances[channel_codec_comport_transmission],inByte);
-	}
+	uint16_t inByte;
 
 
 
-	if (i>50){
-		delay(100);
+
+	if (i>1000){
+		while (Serial.available() > 0) {
+			// read the incoming byte:
+			inByte = Serial.read();
+
+			channel_push_byte_to_RPC(&cc_instances[channel_codec_comport_transmission],inByte);
+		}
+
+		delay(5);
 		i = 0;
 	}
 	i++;

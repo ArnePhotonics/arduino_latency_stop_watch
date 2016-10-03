@@ -4,9 +4,6 @@ BOARD_TAG    = yun
 ARDUINO_DIR= $(HOME)/opt/arduino-1.6.12
 USER_LIB_PATH=./
 ARDUINO_LIBS =  
-#ARDUINO_LIBS += rpcProtokollArduino/src/server/generated_app
-#ARDUINO_LIBS += rpcProtokollArduino/src/client/generated_app
-
 ARDUINO_LIBS +=libs/RPC-ChannelCodec/src/channel_codec
 ARDUINO_LIBS +=libs/RPC-ChannelCodec/include
 ARDUINO_LIBS +=libs/RPC-ChannelCodec/include/errorlogger_dummy
@@ -16,11 +13,6 @@ ARDUINO_LIBS +=modules/rpc/src/client/generated_app
 ARDUINO_LIBS +=modules/rpc/src/server/generated_app
 ARDUINO_LIBS +=modules/rpc/src/server/app
 ARDUINO_LIBS +=src
-#ARDUINO_LIBS +=modules/rpc/include/rpc_transmission/client/generated_general
-#ARDUINO_LIBS +=modules/rpc/src/server/generated_app
-#ARDUINO_LIBS +=../qt/project/libs/rpc/src/client/generated_app
-#ARDUINO_LIBS +=pcProtokollArduino/src/server/generated_app
-#ARDUINO_LIBS +=rpcProtokollArduino/src/client/generated_app
 
 #USER_LIB_PATH=
 #USER_INCLUDES = pt/

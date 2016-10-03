@@ -12,11 +12,7 @@
 extern "C" {
 #endif
 
-#include "channel_codec/channel_codec_types.h"
-
 #include <stdint.h>
-
-extern channel_codec_instance_t cc_instances[channel_codec_comport_COUNT];
 
 void xSerialPutChar(uint8_t data);
 
