@@ -4,3 +4,9 @@
 [submodule "qt"]
 	path = qt
 	url = https://github.com/pioupus/rpcQtTemplate.git
+[submodule "Arduino-Makefile"]
+	path = Arduino-Makefile
+	url = https://github.com/sudar/Arduino-Makefile.git
+[submodule "mcu/libs/RPC-ChannelCodec"]
+	path = mcu/libs/RPC-ChannelCodec
+	url = https://github.com/Crystal-Photonics/RPC-ChannelCodec.git
