@@ -27,12 +27,11 @@
 *.qbs.user
 *.qbs.user.*
 *.moc
-moc_*.cpp
-qrc_*.cpp
-ui_*.h
+qt/moc_*.cpp
+qt/qrc_*.cpp
+qt/ui_*.h
 qt/*Makefile*
 
-*build-*
 
 # QtCreator
 
@@ -97,7 +96,6 @@ local.properties
 
 qt/builds
 qt/project/libs/build/
-vc.h
 
 qt/project/libs/rpc/doc
 qt/project/libs/rpc/src/server/generated_app/
@@ -106,6 +104,7 @@ qt/project/libs/rpc/include/rpc_transmission/server/generated_general/
 qt/project/libs/rpc/include/rpc_transmission/client/
 
 mcu/build-*/*
+mcu/include/vc.h
 mcu/modules/rpc/doc
 mcu/modules/rpc/src/server/generated_app/
 mcu/modules/rpc/src/client/generated_app/

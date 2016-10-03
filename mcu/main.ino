@@ -5,7 +5,7 @@
 
 
 #include "main.h"
-
+#include "vc.h"
 #include "errorlogger/generic_eeprom_errorlogger.h"
 #include "channel_codec/channel_codec.h"
 #include "rpc_transmission/client/generated_app/RPC_TRANSMISSION_mcu2qt.h"
