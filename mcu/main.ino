@@ -20,6 +20,29 @@ channel_codec_instance_t cc_instances[channel_codec_comport_COUNT];
 static char cc_rxBuffers[channel_codec_comport_COUNT][CHANNEL_CODEC_RX_BUFFER_SIZE];
 static char cc_txBuffers[channel_codec_comport_COUNT][CHANNEL_CODEC_TX_BUFFER_SIZE];
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+	void xSerialToRPC(void){
+#if 1
+		while (Serial.available() > 0) {
+			// read the incoming byte:
+			char inByte = Serial.read();
+			channel_push_byte_to_RPC(&cc_instances[channel_codec_comport_transmission],inByte);
+		}
+#endif
+	}
+
+	void SET_LED(int ledstatus){
+		digitalWrite(LEDPIN, ledstatus); // write inversed state back
+
+	}
+#ifdef __cplusplus
+}
+#endif
+
 void ChannelCodec_errorHandler(channel_codec_instance_t *instance,  channelCodecErrorNum_t ErrNum){
 	(void)ErrNum;
 	(void)instance;
@@ -28,16 +51,13 @@ void ChannelCodec_errorHandler(channel_codec_instance_t *instance,  channelCodec
 
 
 void xSerialPutChar(uint8_t data){
-	static uint16_t counter = 0;
-	//data = 0xFF;
-//	data = counter;
 	Serial.write(data);
-	counter++;
 }
 
 void setup() {
 	// start serial port at 9600 bps:
   Serial.begin(115200);
+  RPC_TRANSMISSION_mutex_init();
 
   cc_instances[channel_codec_comport_transmission].aux.port = channel_codec_comport_transmission;
 
@@ -64,19 +84,19 @@ void toggleLED() {
 }
 
 void loop() {
-	int i=0;
-	uint16_t inByte;
-	#if 1
-		while (Serial.available() > 0) {
-			// read the incoming byte:
-			inByte = Serial.read();
+	while(1){
+		xSerialToRPC();
 
-			channel_push_byte_to_RPC(&cc_instances[channel_codec_comport_transmission],inByte);
+		toggleLED();
+		//digitalWrite(LEDPIN, true);
+		RPC_RESULT  result;
+		result = qtKeyPressed(rpcKeyStatus_pressed);
+		if (result == RPC_SUCCESS){
+			digitalWrite(LEDPIN, true); // write inversed state back
+		}else{
+			digitalWrite(LEDPIN, false); // write inversed state back
 		}
-#endif
-
-	delay(1000);
-	toggleLED();
-
-	qtUpdateMCUADCValues(18,1,1,1);
+		delay(1000);
+	}
+	//qtUpdateMCUADCValues(18,1,1,1);
 }

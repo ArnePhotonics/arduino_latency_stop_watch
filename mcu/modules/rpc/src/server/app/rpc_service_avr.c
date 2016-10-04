@@ -9,26 +9,67 @@
 #include"../../../include/rpc_transmission/server/generated_general/RPC_types.h"
 #include"../../../include/rpc_transmission/server/generated_general/RPC_TRANSMISSION_network.h"
 #include "serial.h"
+#include <stdint.h>
 #include "channel_codec/channel_codec.h"
 #include "globals.h"
 
+static volatile uint8_t RPC_TRANSMISSION_mutex_is_locked[RPC_MUTEX_COUNT];
+
+const uint32_t RPC_MUTEX_TIMEOUT_MAX = UINT32_MAX;
+const uint32_t RPC_MUTEX_TIMEOUT_ms  = 500UL;
+//500
 /* Initializes all rpc mutexes. */
 void RPC_TRANSMISSION_mutex_init(void){
-
-}
-
-/* Locks the mutex. If it is already locked it yields until it can lock the mutex. */
-void RPC_TRANSMISSION_mutex_lock(RPC_mutex_id mutex_id){
-
+	for (int i =0;i<RPC_MUTEX_COUNT;i++){
+		RPC_TRANSMISSION_mutex_is_locked[i] = 0;
+	}
 }
 
 /* Unlocks the mutex. The mutex is locked when the function is called. */
 void RPC_TRANSMISSION_mutex_unlock(RPC_mutex_id mutex_id){
-
+	RPC_TRANSMISSION_mutex_is_locked[mutex_id] = 0;
 }
 
+static char RPC_TRANSMISSION_mutex_lock_timeout_raw(const unsigned long timeout, RPC_mutex_id mutex_id){
+	unsigned long timer=0;
+	bool timeout_happened = true;
+	while (timeout_happened){
+		timer++;
+		if ((timer>=timeout) && (timeout != RPC_MUTEX_TIMEOUT_MAX)){
+			break;
+		}
+		xSerialToRPC();
+		if(RPC_TRANSMISSION_mutex_is_locked[mutex_id] == 1){
+			//delay(1);
+			volatile uint32_t ii=0;
+			while (ii < 500UL){
+				ii++;
+			}
+
+		}else{
+			timeout_happened = false;
+		}
+	}
+	if (timeout_happened == false){
+		RPC_TRANSMISSION_mutex_is_locked[mutex_id] = 1;
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+/* Locks the mutex. If it is already locked it yields until it can lock the mutex. */
+void RPC_TRANSMISSION_mutex_lock(RPC_mutex_id mutex_id){
+	RPC_TRANSMISSION_mutex_lock_timeout_raw(RPC_MUTEX_TIMEOUT_MAX, mutex_id);
+}
+
+
+/* Tries to lock a mutex. Returns 1 if the mutex was locked and 0 if a timeout
+   occured. The timeout length should be the time you want to wait for an answer
+   before giving up. If the time is infinite a lost answer will get the calling
+   thread stuck indefinitely. */
 char RPC_TRANSMISSION_mutex_lock_timeout(RPC_mutex_id mutex_id){
-	return 0;
+	return RPC_TRANSMISSION_mutex_lock_timeout_raw(RPC_MUTEX_TIMEOUT_ms,mutex_id);
 }
 
 /*  This function is called when a new message starts. {size} is the number of
