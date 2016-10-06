@@ -13,7 +13,12 @@
 #include "channel_codec/channel_codec.h"
 #include "globals.h"
 
-static volatile uint8_t RPC_TRANSMISSION_mutex_is_locked[RPC_MUTEX_COUNT];
+typedef struct{
+	uint8_t locked;
+	int8_t recursion_depth;
+} singleThreadRPCMutex_t;
+
+static volatile singleThreadRPCMutex_t RPC_TRANSMISSION_mutex[RPC_MUTEX_COUNT];
 
 const uint32_t RPC_MUTEX_TIMEOUT_MAX = UINT32_MAX;
 const uint32_t RPC_MUTEX_TIMEOUT_ms  = 500UL;
@@ -21,37 +26,58 @@ const uint32_t RPC_MUTEX_TIMEOUT_ms  = 500UL;
 /* Initializes all rpc mutexes. */
 void RPC_TRANSMISSION_mutex_init(void){
 	for (int i =0;i<RPC_MUTEX_COUNT;i++){
-		RPC_TRANSMISSION_mutex_is_locked[i] = 0;
+		RPC_TRANSMISSION_mutex[i].locked = 0;
+		RPC_TRANSMISSION_mutex[i].recursion_depth = 0;
 	}
 }
 
 /* Unlocks the mutex. The mutex is locked when the function is called. */
 void RPC_TRANSMISSION_mutex_unlock(RPC_mutex_id mutex_id){
-	RPC_TRANSMISSION_mutex_is_locked[mutex_id] = 0;
+	RPC_TRANSMISSION_mutex[mutex_id].locked = 0;
 }
 
 static char RPC_TRANSMISSION_mutex_lock_timeout_raw(const unsigned long timeout, RPC_mutex_id mutex_id){
 	unsigned long timer=0;
 	bool timeout_happened = true;
+	bool ignore= false;
+	if (mutex_id == RPC_mutex_caller){//in RPC is used to prevent sending a request while another request is in progress. Not possible in Single thread system
+		ignore = true;
+	}
+	if (mutex_id == RPC_mutex_in_caller){ //in RPC is used to prevent that the answer is parsed before the request. Not possible in Single thread system
+		ignore = true;
+	}
+	if (mutex_id == RPC_mutex_parsing_complete){
+		ignore = true;
+	}
+	if ((mutex_id == RPC_mutex_answer) && (RPC_TRANSMISSION_mutex[mutex_id].recursion_depth > 1)){
+		//ignore = true;
+	}
+//
+	if (ignore){
+		return 1;
+	}
+	RPC_TRANSMISSION_mutex[mutex_id].recursion_depth++;
 	while (timeout_happened){
 		timer++;
 		if ((timer>=timeout) && (timeout != RPC_MUTEX_TIMEOUT_MAX)){
 			break;
 		}
-		xSerialToRPC();
-		if(RPC_TRANSMISSION_mutex_is_locked[mutex_id] == 1){
-			//delay(1);
-			volatile uint32_t ii=0;
-			while (ii < 500UL){
-				ii++;
+
+		if(RPC_TRANSMISSION_mutex[mutex_id].locked == 1){
+			//if (RPC_TRANSMISSION_mutex[mutex_id].recursion_depth == 1)
+			{
+				xSerialToRPC();
 			}
+			delay_ms(1);
 
 		}else{
 			timeout_happened = false;
 		}
 	}
+	RPC_TRANSMISSION_mutex[mutex_id].recursion_depth--;
+
 	if (timeout_happened == false){
-		RPC_TRANSMISSION_mutex_is_locked[mutex_id] = 1;
+		RPC_TRANSMISSION_mutex[mutex_id].locked = 1;
 		return 1;
 	}else{
 		return 0;

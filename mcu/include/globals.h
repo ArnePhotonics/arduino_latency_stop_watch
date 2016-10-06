@@ -5,6 +5,20 @@
 
 #include "channel_codec/channel_codec_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdint.h>
+
+
+void SET_LED(int ledstatus);
+void delay_ms(uint32_t sleep_ms);
+
+#ifdef __cplusplus
+}
+#endif
+
 typedef struct{
 	uint8_t serialno[5];
 } t_glob;

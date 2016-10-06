@@ -5,6 +5,7 @@
 
 
 #include "main.h"
+#include "globals.h"
 #include "vc.h"
 #include "errorlogger/generic_eeprom_errorlogger.h"
 #include "channel_codec/channel_codec.h"
@@ -20,25 +21,57 @@ channel_codec_instance_t cc_instances[channel_codec_comport_COUNT];
 static char cc_rxBuffers[channel_codec_comport_COUNT][CHANNEL_CODEC_RX_BUFFER_SIZE];
 static char cc_txBuffers[channel_codec_comport_COUNT][CHANNEL_CODEC_TX_BUFFER_SIZE];
 
+bool xSerialCharAvailable(){
+	if(Serial.available()){
 
+		return true;
+	}else{
+		return false;
+	}
+}
+
+bool xSerialGetChar(char *data){
+	if(Serial.available()){
+		*data = Serial.read();
+		return true;
+	}else{
+		return false;
+	}
+}
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 	void xSerialToRPC(void){
-#if 1
-		while (Serial.available() > 0) {
+		while (xSerialCharAvailable()) {
 			// read the incoming byte:
-			char inByte = Serial.read();
+			char inByte = 0;
+			xSerialGetChar(&inByte);
+
 			channel_push_byte_to_RPC(&cc_instances[channel_codec_comport_transmission],inByte);
 		}
-#endif
+	}
+
+
+
+	void xSerialPutChar(uint8_t data){
+		Serial.write(data);
 	}
 
 	void SET_LED(int ledstatus){
 		digitalWrite(LEDPIN, ledstatus); // write inversed state back
+		if (ledstatus==30){
+			Serial.print("Answer\n");
+		}
 
 	}
+
+	void delay_ms(uint32_t sleep_ms){
+		delay(sleep_ms);
+
+	}
+
 #ifdef __cplusplus
 }
 #endif
@@ -50,9 +83,7 @@ void ChannelCodec_errorHandler(channel_codec_instance_t *instance,  channelCodec
 }
 
 
-void xSerialPutChar(uint8_t data){
-	Serial.write(data);
-}
+
 
 void setup() {
 	// start serial port at 9600 bps:
@@ -86,17 +117,25 @@ void toggleLED() {
 void loop() {
 	while(1){
 		xSerialToRPC();
-
-		toggleLED();
-		//digitalWrite(LEDPIN, true);
-		RPC_RESULT  result;
+#if 1
+		for (int i=0;i<5;i++){
+			toggleLED();
+			delay(100);
+		}
+		RPC_RESULT  result = RPC_FAILURE;
+		digitalWrite(LEDPIN, true);
 		result = qtKeyPressed(rpcKeyStatus_pressed);
 		if (result == RPC_SUCCESS){
 			digitalWrite(LEDPIN, true); // write inversed state back
-		}else{
+			//Serial.print("SUCCESS");
+		}else if (result == RPC_FAILURE){
+			//Serial.print("FAIL");
 			digitalWrite(LEDPIN, false); // write inversed state back
 		}
 		delay(1000);
+		qtUpdateMCUADCValues(18,1,1,1);
+#endif
 	}
-	//qtUpdateMCUADCValues(18,1,1,1);
+
+
 }
