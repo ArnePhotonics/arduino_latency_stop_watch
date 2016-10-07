@@ -118,7 +118,7 @@ void loop() {
 	while(1){
 		xSerialToRPC();
 #if 1
-		for (int i=0;i<5;i++){
+		for (int i=0;i<3;i++){
 			toggleLED();
 			delay(100);
 		}
@@ -127,12 +127,12 @@ void loop() {
 		result = qtKeyPressed(rpcKeyStatus_pressed);
 		if (result == RPC_SUCCESS){
 			digitalWrite(LEDPIN, true); // write inversed state back
-			//Serial.print("SUCCESS");
+			Serial.print("SUCCESS");
 		}else if (result == RPC_FAILURE){
-			//Serial.print("FAIL");
+			Serial.print("FAIL");
 			digitalWrite(LEDPIN, false); // write inversed state back
 		}
-		delay(1000);
+		delay(10);
 		qtUpdateMCUADCValues(18,1,1,1);
 #endif
 	}

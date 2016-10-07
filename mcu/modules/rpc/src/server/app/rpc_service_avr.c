@@ -15,7 +15,7 @@
 
 typedef struct{
 	uint8_t locked;
-	int8_t recursion_depth;
+	//int8_t recursion_depth;
 } singleThreadRPCMutex_t;
 
 static volatile singleThreadRPCMutex_t RPC_TRANSMISSION_mutex[RPC_MUTEX_COUNT];
@@ -27,7 +27,7 @@ const uint32_t RPC_MUTEX_TIMEOUT_ms  = 500UL;
 void RPC_TRANSMISSION_mutex_init(void){
 	for (int i =0;i<RPC_MUTEX_COUNT;i++){
 		RPC_TRANSMISSION_mutex[i].locked = 0;
-		RPC_TRANSMISSION_mutex[i].recursion_depth = 0;
+		//RPC_TRANSMISSION_mutex[i].recursion_depth = 0;
 	}
 }
 
@@ -49,14 +49,11 @@ static char RPC_TRANSMISSION_mutex_lock_timeout_raw(const unsigned long timeout,
 	if (mutex_id == RPC_mutex_parsing_complete){
 		ignore = true;
 	}
-	if ((mutex_id == RPC_mutex_answer) && (RPC_TRANSMISSION_mutex[mutex_id].recursion_depth > 1)){
-		//ignore = true;
-	}
-//
+
 	if (ignore){
 		return 1;
 	}
-	RPC_TRANSMISSION_mutex[mutex_id].recursion_depth++;
+	//RPC_TRANSMISSION_mutex[mutex_id].recursion_depth++;
 	while (timeout_happened){
 		timer++;
 		if ((timer>=timeout) && (timeout != RPC_MUTEX_TIMEOUT_MAX)){
@@ -74,7 +71,7 @@ static char RPC_TRANSMISSION_mutex_lock_timeout_raw(const unsigned long timeout,
 			timeout_happened = false;
 		}
 	}
-	RPC_TRANSMISSION_mutex[mutex_id].recursion_depth--;
+	//RPC_TRANSMISSION_mutex[mutex_id].recursion_depth--;
 
 	if (timeout_happened == false){
 		RPC_TRANSMISSION_mutex[mutex_id].locked = 1;
