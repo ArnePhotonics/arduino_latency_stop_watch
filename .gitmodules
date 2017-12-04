@@ -1,6 +1,3 @@
-[submodule "RPC-Generator"]
-	path = RPC-Generator
-	url = https://github.com/pioupus/RPC-Generator.git
 [submodule "qt"]
 	path = qt
 	url = https://github.com/pioupus/rpcQtTemplate.git
