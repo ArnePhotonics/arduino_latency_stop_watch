@@ -8,30 +8,51 @@
 #include "../../../include/rpc_transmission/server/app/qt2mcu.h"
 #include "board.h"
 #include "globals.h"
-void mcuSendDataNoAnswer(uint8_t data){
+#include "vc.h"
 
+#include "Arduino.h"
+
+rpc_analog_values_t get_analog_values(void){
+    rpc_analog_values_t result;
+    result.ain0 = analogRead(0);
+    result.ain1 = analogRead(1);
+    result.ain2 = analogRead(2);
+    result.ain3 = analogRead(3);
+    result.ain4 = analogRead(4);
+    result.ain5 = analogRead(5);
+    return result;
 }
 
-uint16_t mcuSetMCUTargetTemperature(uint16_t data){
-	static uint8_t ledstatus = 0;
-	ledstatus++;
-	//TARGETEMP_C = data;
-	if (ledstatus & 1){
-		//SET_LED_M();
-	}else{
-		//CLEAR_LED_M();
-	}
-	(void) data;
-	return 0;
+uint8_t get_digital_value(uint8_t pin_number){
+    uint8_t result = digitalRead(pin_number) == HIGH;
+    return result;
 }
 
-uint16_t mcuSetLEDStatus(rpcLEDStatus_t ledStatus){
-
-	static uint16_t returnvalue = 0;
-	//RPC_TRANSMISSION_cancel_reply();
-	returnvalue++;
-
-
-	return returnvalue;
+void set_digital_value(uint8_t pin_number, uint8_t value){
+    if (value){
+      digitalWrite(pin_number, HIGH);
+    }else{
+      digitalWrite(pin_number, LOW);
+    }
 }
 
+void set_digital_direction(uint8_t pin_number, uint8_t output_direction){
+    if (output_direction){
+      pinMode(pin_number, OUTPUT);
+    }else{
+      pinMode(pin_number, INPUT);
+    }
+}
+
+device_descriptor_v1_t get_device_descriptor(void) {
+    device_descriptor_v1_t descriptor = {
+        .githash = GITHASH,
+        .gitDate_unix = GITUNIX,
+        .deviceID = 0,
+        .guid = {0},
+        .boardRevision = 0,
+        .name = "ArduLogger",
+        .version = "-",
+    };
+    return descriptor;
+}

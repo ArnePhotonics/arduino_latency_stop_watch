@@ -1,7 +1,7 @@
 # Arduino Make file. Refer to https://github.com/sudar/Arduino-Makefile
 ARDMK_DIR = ../Arduino-Makefile
-BOARD_TAG    = yun
-ARDUINO_DIR= $(HOME)/opt/arduino-1.6.12
+BOARD_TAG    = uno
+ARDUINO_DIR= $(HOME)/opt/arduino-1.8.5
 USER_LIB_PATH=./
 ARDUINO_LIBS =  
 ARDUINO_LIBS +=libs/RPC-ChannelCodec/src/channel_codec
