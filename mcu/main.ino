@@ -13,8 +13,8 @@
 
 #define LEDPIN 13  // LEDPIN is a constant
 
-#define CHANNEL_CODEC_TX_BUFFER_SIZE 32
-#define CHANNEL_CODEC_RX_BUFFER_SIZE 32
+#define CHANNEL_CODEC_TX_BUFFER_SIZE 64
+#define CHANNEL_CODEC_RX_BUFFER_SIZE 64
 
 channel_codec_instance_t cc_instances[channel_codec_comport_COUNT];
 
@@ -43,8 +43,15 @@ bool xSerialGetChar(char *data){
 extern "C" {
 #endif
 
+      void toggleLED() {
+	boolean ledstate = digitalRead(LEDPIN); // get LED state
+	ledstate ^= 1;   // toggle LED state using xor
+	digitalWrite(LEDPIN, ledstate); // write inversed state back
+      }
+
 	void xSerialToRPC(void){
 		while (xSerialCharAvailable()) {
+		      toggleLED();
 			// read the incoming byte:
 			char inByte = 0;
 			xSerialGetChar(&inByte);
@@ -108,34 +115,10 @@ void setup() {
   digitalWrite(LEDPIN, 1); // write inversed state back
 }
 
-void toggleLED() {
-  boolean ledstate = digitalRead(LEDPIN); // get LED state
-  ledstate ^= 1;   // toggle LED state using xor
-  digitalWrite(LEDPIN, ledstate); // write inversed state back
-}
+
 
 void loop() {
-	while(1){
-		xSerialToRPC();
-#if 1
-		for (int i=0;i<3;i++){
-			toggleLED();
-			delay(100);
-		}
-		RPC_RESULT  result = RPC_FAILURE;
-		digitalWrite(LEDPIN, true);
-		result = qtKeyPressed(rpcKeyStatus_pressed);
-		if (result == RPC_SUCCESS){
-			digitalWrite(LEDPIN, true); // write inversed state back
-			Serial.print("SUCCESS");
-		}else if (result == RPC_FAILURE){
-			Serial.print("FAIL");
-			digitalWrite(LEDPIN, false); // write inversed state back
-		}
-		delay(10);
-		qtUpdateMCUADCValues(18,1,1,1);
-#endif
-	}
-
-
+  while(1){
+    xSerialToRPC();
+  }
 }
