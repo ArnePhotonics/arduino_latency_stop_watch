@@ -16,13 +16,42 @@
 #define CHANNEL_CODEC_TX_BUFFER_SIZE 64
 #define CHANNEL_CODEC_RX_BUFFER_SIZE 64
 
+
 channel_codec_instance_t cc_instances[channel_codec_comport_COUNT];
 
 static char cc_rxBuffers[channel_codec_comport_COUNT][CHANNEL_CODEC_RX_BUFFER_SIZE];
 static char cc_txBuffers[channel_codec_comport_COUNT][CHANNEL_CODEC_TX_BUFFER_SIZE];
 
+uint16_t round_times[INPUT_PINS_COUNT_FOR_ROUND_TIME] = {0};
+uint8_t old_input_pins = 0;
+uint8_t edge_mask_falling = 0;
+
+uint8_t trigger_pin_map = 0;
+uint8_t round_time_pin_map = 0;
+uint8_t active_pins_for_roundtime_map = 0;
+
 bool xSerialCharAvailable(){
-	if(Serial.available()){
+    uint8_t input_pins = PIND & active_pins_for_roundtime_map;
+    if (input_pins != old_input_pins){
+        for (char i=0; i< INPUT_PINS_COUNT_FOR_ROUND_TIME; i++){
+            uint8_t mask = 1<<i;
+            if (edge_mask_falling & mask){
+                //if rising edge for specific pin
+                if(((input_pins & mask) > 0) && ((old_input_pins & mask) == 0)){
+                    //rising edge detected
+                    round_times[i] = TCNT1;
+                }
+                    
+            }else{
+                if(((input_pins & mask) == 0) && ((old_input_pins & mask) > 0)){
+                    //falling edge detected
+                    round_times[i] = TCNT1;
+                }
+            }
+        }
+    }
+    old_input_pins = input_pins;
+    if(Serial.available()){
 
 		return true;
 	}else{
@@ -38,6 +67,8 @@ bool xSerialGetChar(char *data){
 		return false;
 	}
 }
+
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -110,9 +141,9 @@ void setup() {
   }
 #endif
 
-
-  pinMode(LEDPIN, OUTPUT); // LED init
-  digitalWrite(LEDPIN, 1); // write inversed state back
+    DDRD = 0x00; // set PORTD to input (D0-D7)
+    pinMode(LEDPIN, OUTPUT); // LED init (D13=B5)
+    digitalWrite(LEDPIN, 1); // write inversed state back
 }
 
 

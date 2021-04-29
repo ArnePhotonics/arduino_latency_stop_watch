@@ -7,13 +7,9 @@ extern "C" {
 	
 
 typedef struct{
-  uint16_t ain0;
-  uint16_t ain1;
-  uint16_t ain2;
-  uint16_t ain3;
-  uint16_t ain4;
-  uint16_t ain5;
-} rpc_analog_values_t;
+    uint16_t round_times_64us[8];
+    bool triggered[8];
+} round_times_t;
 
 
 typedef struct{
@@ -30,13 +26,16 @@ typedef struct{
 } device_descriptor_v1_t;
 
 
+typedef enum{d0_roundstop, d1_roundstop, d2_roundstop, d3_roundstop, d4_roundstop, d5_roundstop, d6_roundstop, d7_roundstop} arduino_dig_pin_roundstop_t;
+typedef enum{d2_trigger, d3_trigger} arduino_dig_pin_trigger_t;
+typedef enum{edge_rising, edge_falling} arduino_dig_edge_t;
 
 device_descriptor_v1_t get_device_descriptor(void);
-void set_digital_direction(uint8_t pin_number, uint8_t output_direction);
-void set_digital_value(uint8_t pin_number, uint8_t value);
-uint8_t get_digital_value(uint8_t pin_number);
-rpc_analog_values_t get_analog_values(void);
-  
+void reset_all();
+void start_timer(arduino_dig_pin_trigger_t triggered_by, arduino_dig_edge_t edge);
+void define_roundstop_pin(arduino_dig_pin_roundstop_t pin, arduino_dig_edge_t edge);
+round_times_t get_round_times();
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

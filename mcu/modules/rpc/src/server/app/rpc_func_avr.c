@@ -12,8 +12,31 @@
 
 #include "Arduino.h"
 
-rpc_analog_values_t get_analog_values(void){
-    rpc_analog_values_t result;
+void reset_all();
+
+void start_timer(arduino_dig_pin_trigger_t triggered_by, arduino_dig_edge_t edge);
+void define_roundstop_pin(arduino_dig_pin_roundstop_t pin, arduino_dig_edge_t edge);
+
+
+static uint16_t timer_overflow_counter = 0;
+
+ISR(TIMER1_OVF_vect)        
+{
+    digitalWrite(ledPin, digitalRead(ledPin) ^ 1); // LED ein und aus
+    timer_overflow_counter++;
+}
+
+void timer_init(){
+    //Timer1 is used normally by servo library
+    TCCR1B = 0; //Timer1 is a 16bit timer
+    TCCR1B |= (1 << CS10) | (1 << CS12); //1024 prescaler --> 64us/tick 
+    TCNT1 = 0;
+    TIMSK1 |= (1 << TOIE0);
+    timer_overflow_counter = 0;
+}
+
+round_times_t get_round_times(void){
+    round_times_t result;
     result.ain0 = analogRead(0);
     result.ain1 = analogRead(1);
     result.ain2 = analogRead(2);
@@ -51,7 +74,7 @@ device_descriptor_v1_t get_device_descriptor(void) {
         .deviceID = 0,
         .guid = {0},
         .boardRevision = 0,
-        .name = "ArduLogger",
+        .name = "ArduWatch",
         .version = "-",
     };
     return descriptor;
