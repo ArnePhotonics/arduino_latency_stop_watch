@@ -46,7 +46,7 @@ ISR(PCINT2_vect) {
         if (is_round_time_measured[i] == false) {
             if (edge_mask_falling & mask) {
                 // if rising edge for specific pin
-                if (((old_input_pins & mask) > 0) && ((input_pins & mask) == 0)) {
+                if (((old_input_pins & mask) == 0) && ((input_pins & mask) > 0)) {
                     // rising edge detected
                     if (timer_has_been_overflowed == false) {
                         round_times[i] = TCNT1 * 4; // for some reason there is a factor 4 missing somewhere
