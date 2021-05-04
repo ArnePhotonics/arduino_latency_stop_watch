@@ -8,7 +8,7 @@ extern "C" {
 
 typedef struct{
     uint16_t round_times_64us[8];
-    bool triggered[8];
+    uint8_t triggered[8];
 } round_times_t;
 
 
@@ -32,7 +32,9 @@ typedef enum{edge_rising, edge_falling} arduino_dig_edge_t;
 
 device_descriptor_v1_t get_device_descriptor(void);
 void reset_all();
+void reset_times_only();
 void start_timer(arduino_dig_pin_trigger_t triggered_by, arduino_dig_edge_t edge);
+void stop_timer();
 void define_roundstop_pin(arduino_dig_pin_roundstop_t pin, arduino_dig_edge_t edge);
 round_times_t get_round_times();
 

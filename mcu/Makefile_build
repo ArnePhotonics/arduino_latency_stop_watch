@@ -20,6 +20,7 @@ ARDUINO_LIBS +=src
 #include $(ARDMK_DIR)/Arduino.mk
 
 BOARD_TAG    = uno
+AVRDUDE_CONF = /usr/share/arduino/hardware/tools/avrdude.conf
 #include ../../Arduino.mk
 #ARDUINO_PORT = /dev/ttyACM0
 include /usr/share/arduino/Arduino.mk

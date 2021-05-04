@@ -6,6 +6,7 @@
 #include "channel_codec/channel_codec_types.h"
 
 #define INPUT_PINS_COUNT_FOR_ROUND_TIME 8
+#define LEDPIN 13  // LEDPIN is a constant
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,15 +28,13 @@ typedef struct{
 
 t_glob glob;
 
-extern uint16_t round_times[INPUT_PINS_COUNT_FOR_ROUND_TIME];
-extern uint8_t old_input_pins;
-extern uint8_t edge_mask_falling;
+extern volatile uint16_t round_times[INPUT_PINS_COUNT_FOR_ROUND_TIME];
+extern volatile uint8_t is_round_time_measured[INPUT_PINS_COUNT_FOR_ROUND_TIME];
+extern volatile uint8_t edge_mask_falling;
+extern volatile bool timer_has_been_overflowed;
+extern volatile uint8_t active_pins_for_roundtime_map;
 
-extern uint8_t trigger_pin_map;
-extern uint8_t round_time_pin_map;
-extern uint8_t active_pins_for_roundtime_map;
-
-extern uint8_t TARGETEMP_C;
+extern volatile uint8_t old_input_pins;
 
 extern channel_codec_instance_t cc_instances[channel_codec_comport_COUNT];
 

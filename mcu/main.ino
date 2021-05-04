@@ -11,7 +11,7 @@
 #include "channel_codec/channel_codec.h"
 #include "rpc_transmission/client/generated_app/RPC_TRANSMISSION_mcu2qt.h"
 
-#define LEDPIN 13  // LEDPIN is a constant
+
 
 #define CHANNEL_CODEC_TX_BUFFER_SIZE 64
 #define CHANNEL_CODEC_RX_BUFFER_SIZE 64
@@ -22,35 +22,68 @@ channel_codec_instance_t cc_instances[channel_codec_comport_COUNT];
 static char cc_rxBuffers[channel_codec_comport_COUNT][CHANNEL_CODEC_RX_BUFFER_SIZE];
 static char cc_txBuffers[channel_codec_comport_COUNT][CHANNEL_CODEC_TX_BUFFER_SIZE];
 
-uint16_t round_times[INPUT_PINS_COUNT_FOR_ROUND_TIME] = {0};
-uint8_t old_input_pins = 0;
-uint8_t edge_mask_falling = 0;
+volatile uint16_t round_times[INPUT_PINS_COUNT_FOR_ROUND_TIME] = {0};
+volatile uint8_t is_round_time_measured[INPUT_PINS_COUNT_FOR_ROUND_TIME] = {0};
 
-uint8_t trigger_pin_map = 0;
-uint8_t round_time_pin_map = 0;
-uint8_t active_pins_for_roundtime_map = 0;
+volatile uint8_t old_input_pins = 0;
+volatile uint8_t edge_mask_falling = 0;
 
-bool xSerialCharAvailable(){
-    uint8_t input_pins = PIND & active_pins_for_roundtime_map;
-    if (input_pins != old_input_pins){
-        for (char i=0; i< INPUT_PINS_COUNT_FOR_ROUND_TIME; i++){
+
+volatile uint8_t active_pins_for_roundtime_map = 0;
+
+volatile bool timer_has_been_overflowed = false;
+
+
+ISR(PCINT2_vect)
+{
+    //PD0: PCINT16
+    //PD1: PCINT17
+    //PD2: PCINT18
+    //PD3: PCINT19
+    //PD4: PCINT20
+    //PD5: PCINT21
+    //PD6: PCINT22
+    //PD7: PCINT23
+    uint8_t input_pins = PIND;
+
+        for (uint8_t i=0; i< INPUT_PINS_COUNT_FOR_ROUND_TIME; i++){
             uint8_t mask = 1<<i;
-            if (edge_mask_falling & mask){
-                //if rising edge for specific pin
-                if(((input_pins & mask) > 0) && ((old_input_pins & mask) == 0)){
-                    //rising edge detected
-                    round_times[i] = TCNT1;
-                }
-                    
-            }else{
-                if(((input_pins & mask) == 0) && ((old_input_pins & mask) > 0)){
-                    //falling edge detected
-                    round_times[i] = TCNT1;
+            if ((active_pins_for_roundtime_map & mask) == 0){
+                continue;
+            }
+            if (is_round_time_measured[i] == false){
+                if (edge_mask_falling & mask){
+                    //if rising edge for specific pin
+                    if(((old_input_pins & mask) > 0) && ((input_pins & mask) == 0)){
+                        //rising edge detected
+                        if (timer_has_been_overflowed == false){
+                            round_times[i] = TCNT1*4;//for some reason there is a factor 4 missing somewhere
+                        }else{
+                            round_times[i] = 0xFFFF;
+                        }
+                        is_round_time_measured[i] = true;
+                        digitalWrite(LEDPIN, 0); // set led
+                    }
+                }else{
+                    if(((old_input_pins & mask) > 0) && ((input_pins & mask) == 0) ){
+                        //falling edge detected
+                        if (timer_has_been_overflowed == false){
+                            round_times[i] = TCNT1*4;//for some reason there is a factor 4 missing somewhere
+                        }else{
+                            round_times[i] = 0xFFFF;
+                        }
+                        is_round_time_measured[i] = true;
+                        digitalWrite(LEDPIN, 0); // set led
+                    }
                 }
             }
         }
-    }
+
     old_input_pins = input_pins;
+}
+
+bool xSerialCharAvailable(){
+
     if(Serial.available()){
 
 		return true;
@@ -74,15 +107,8 @@ bool xSerialGetChar(char *data){
 extern "C" {
 #endif
 
-      void toggleLED() {
-	boolean ledstate = digitalRead(LEDPIN); // get LED state
-	ledstate ^= 1;   // toggle LED state using xor
-	digitalWrite(LEDPIN, ledstate); // write inversed state back
-      }
-
 	void xSerialToRPC(void){
 		while (xSerialCharAvailable()) {
-		      toggleLED();
 			// read the incoming byte:
 			char inByte = 0;
 			xSerialGetChar(&inByte);
@@ -97,17 +123,10 @@ extern "C" {
 		Serial.write(data);
 	}
 
-	void SET_LED(int ledstatus){
-		digitalWrite(LEDPIN, ledstatus); // write inversed state back
-		if (ledstatus==30){
-			Serial.print("Answer\n");
-		}
 
-	}
 
 	void delay_ms(uint32_t sleep_ms){
 		delay(sleep_ms);
-
 	}
 
 #ifdef __cplusplus
@@ -124,7 +143,13 @@ void ChannelCodec_errorHandler(channel_codec_instance_t *instance,  channelCodec
 
 
 void setup() {
-	// start serial port at 9600 bps:
+	DDRD = 0x00; // set PORTD to input (D0-D7)
+    PORTD = 0xFF; //enable pullups
+    MCUCR |= (1<<PUD); // enable pullups
+
+    pinMode(LEDPIN, OUTPUT); // LED init (D13=B5)
+    digitalWrite(LEDPIN, 0); // write inversed state back
+
   Serial.begin(115200);
   RPC_TRANSMISSION_mutex_init();
 
@@ -141,9 +166,7 @@ void setup() {
   }
 #endif
 
-    DDRD = 0x00; // set PORTD to input (D0-D7)
-    pinMode(LEDPIN, OUTPUT); // LED init (D13=B5)
-    digitalWrite(LEDPIN, 1); // write inversed state back
+
 }
 
 
