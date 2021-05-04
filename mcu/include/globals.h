@@ -2,18 +2,16 @@
 #define GLOBALS_H_
 #include <stdint.h>
 
-
 #include "channel_codec/channel_codec_types.h"
 
 #define INPUT_PINS_COUNT_FOR_ROUND_TIME 8
-#define LEDPIN 13  // LEDPIN is a constant
+#define LEDPIN 13 // LEDPIN is a constant
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stdint.h>
-
 
 void SET_LED(int ledstatus);
 void delay_ms(uint32_t sleep_ms);
@@ -22,8 +20,8 @@ void delay_ms(uint32_t sleep_ms);
 }
 #endif
 
-typedef struct{
-	uint8_t serialno[5];
+typedef struct {
+    uint8_t serialno[5];
 } t_glob;
 
 t_glob glob;
