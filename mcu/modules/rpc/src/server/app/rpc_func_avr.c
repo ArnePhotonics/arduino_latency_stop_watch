@@ -66,8 +66,12 @@ void timer_init() {
 
 round_times_t get_round_times(void) {
     round_times_t result;
+	uint32_t t;
     for (uint8_t i = 0; i < 8; i++) {
-        result.round_times_64us[i] = round_times[i];
+		t = round_times[i];
+		t *= 4096;  // for some reason there is a factor 4.096 missing somewhere
+		t /= 1000;
+        result.round_times_64us[i] = t;
         result.triggered[i] = is_round_time_measured[i];
     }
     return result;

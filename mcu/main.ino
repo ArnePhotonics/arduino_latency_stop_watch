@@ -49,7 +49,7 @@ ISR(PCINT2_vect) {
                 if (((old_input_pins & mask) == 0) && ((input_pins & mask) > 0)) {
                     // rising edge detected
                     if (timer_has_been_overflowed == false) {
-                        round_times[i] = TCNT1 * 4; // for some reason there is a factor 4 missing somewhere
+                        round_times[i] = TCNT1;
                     } else {
                         round_times[i] = 0xFFFF;
                     }
@@ -60,7 +60,7 @@ ISR(PCINT2_vect) {
                 if (((old_input_pins & mask) > 0) && ((input_pins & mask) == 0)) {
                     // falling edge detected
                     if (timer_has_been_overflowed == false) {
-                        round_times[i] = TCNT1 * 4; // for some reason there is a factor 4 missing somewhere
+                        round_times[i] = TCNT1;
                     } else {
                         round_times[i] = 0xFFFF;
                     }
